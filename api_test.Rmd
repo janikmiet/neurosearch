@@ -7,15 +7,20 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(jsonlite)
+# Get all mesh terms:
+api_request <- URLencode(paste0("http://195.148.31.154:8001/all_mesh_terms"))
+all_terms <- fromJSON(api_request)
 ```
 
-* This is a test program for reading API data from <http://195.148.31.154:8001>
-* Write Mesh-term (*ex. Neurons*) and/or affiliation (*ex. University of Eastern Finland*) and click **Search**
-* You will get list of results and abstracts of publications
+**Search neurosciences articles by mesh-terms, writer name and affiliation.**
+
+* This is a test program for reading data from API endpoint <http://195.148.31.154:8001>
+* Write Mesh-term (*ex. Neurons*) and/or affiliation (*ex. University of Eastern Finland* or *Hiltunen*) and click **Search**
+* You will get a list of publication and information of articles
 
 ```{r}
 inputPanel(
-  textInput(inputId = "term_mesh", label = "Mesh term:", value = "Neurons"),
+  selectInput(inputId = "term_mesh", label = "Mesh term(s):", choices = all_terms, selected = "Neurons", multiple = T),
   textInput(inputId = "term_affiliation", label = "Affiliation:", value = "University of Eastern Finland"),
   actionButton("search", label = "Search")
 )
@@ -25,23 +30,25 @@ jsondata <- eventReactive(input$search,{
   term_affiliation <- input$term_affiliation
   
   # Create API request
-  if(term_mesh == "" & term_affiliation != ""){
-    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles?affiliation=", term_affiliation))
+  api_request <- paste0("http://195.148.31.154:8001/", "articles?")
+  if(is.null(term_mesh) & term_affiliation != ""){
+    api_request <- paste0(api_request, "affiliation=", term_affiliation)
   }else if(term_mesh != "" & term_affiliation == ""){
-    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles?mesh=", term_mesh))
+    api_request <- paste0(api_request, paste0("mesh=", term_mesh, collapse = "&"))
   }else if(term_mesh != "" & term_affiliation != ""){
-    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles?mesh=", term_mesh,"&affiliation=", term_affiliation))
+    api_request <- paste0(api_request, paste0("mesh=", term_mesh, collapse = "&"), "&affiliation=", term_affiliation)
   }else{
-    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles"))
+    api_request <- paste0("http://195.148.31.154:8001/", "articles", "&per_page=100")
   } 
+  api_request <- URLencode(paste0(api_request, "&per_page=100"))
   jsondata <- fromJSON(api_request)
   
 })
 
 output$tableDB <- DT::renderDataTable(jsondata()[, c("title", "pub_year")],  
                                       selection = list(mode = "single", selected = 1), 
-                                      options = list(pageLength = 5, 
-                                                     rownames = FALSE) 
+                                      options = list(pageLength = 5), 
+                                      rownames = FALSE
                                       )
 DT::dataTableOutput("tableDB")
 ```
@@ -52,7 +59,11 @@ DT::dataTableOutput("tableDB")
 ```{r}
 renderText({paste(jsondata()$authors[[input$tableDB_rows_selected]]$l_name, jsondata()$authors[[input$tableDB_rows_selected]]$f_name, collapse = ", ")})
 renderText({paste0("Published: ", jsondata()$pub_year[[input$tableDB_rows_selected]], " | ", "PubMed ID: ", jsondata()$pubmed_id[[input$tableDB_rows_selected]])})
-# renderText({paste0("Link: ", "https://www.ncbi.nlm.nih.gov/pubmed/?term=",jsondata()$pubmed_id[[input$tableDB_rows_selected]],"")})
+# renderText({paste0("Link: ", "https://www.ncbi.nlm.nih.gov/pubmed/?term=", jsondata()$pubmed_id[[input$tableDB_rows_selected]],"")})
+# renderText({
+# })
+#   tagList("LINK:", a("linkki", href=paste0("https://www.ncbi.nlm.nih.gov/pubmed/?term=", jsondata()$pubmed_id[[input$tableDB_rows_selected]])))  
+
 ```
 
 ### Abstract
