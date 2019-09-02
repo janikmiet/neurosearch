@@ -5,6 +5,6 @@ Program to test reading data from API interface. Write a mesh term (ex. Neurons)
  * API URL <http://195.148.31.154:8001>
  
  
- </br>
- </br>Licence: MIT 
- </br>(C) Jani Miettinen
+ <br>
+ <br>Licence: MIT 
+ <br>(C) Jani Miettinen
