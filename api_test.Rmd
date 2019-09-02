@@ -1,0 +1,58 @@
+---
+title: "API test"
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(jsonlite)
+example_data <- fromJSON("http://195.148.31.154:8001/articles?mesh=Neurons&affiliation=University%20of%20Eastern%20Finland")
+```
+
+
+This is a test program for reading API data from <http://195.148.31.154:8001>.
+
+
+```{r}
+inputPanel(
+  textInput(inputId = "term_mesh", label = "Mesh term:", value = "Neurons"),
+  textInput(inputId = "term_affiliation", label = "Affiliation:", value = ""),
+  actionButton("search", label = "Search")
+)
+
+jsondata <- eventReactive(input$search,{
+  term_mesh <- input$term_mesh 
+  term_affiliation <- input$term_affiliation
+  
+  # Create API request
+  if(term_mesh == "" & term_affiliation != ""){
+    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles?affiliation=", term_affiliation))
+  }else if(term_mesh != "" & term_affiliation == ""){
+    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles?mesh=", term_mesh))
+  }else if(term_mesh != "" & term_affiliation != ""){
+    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles?mesh=", term_mesh,"&affiliation=", term_affiliation))
+  }else{
+    api_request <- URLencode(paste0("http://195.148.31.154:8001/", "articles"))
+  } 
+  jsondata <- fromJSON(api_request)
+  
+})
+
+output$tableDB <- DT::renderDataTable(jsondata()[, c("title", "pub_year", "pubmed_id")], selection = "single", options = list(pageLength = 5) )
+DT::dataTableOutput("tableDB")
+```
+
+### Abstract
+
+```{r}
+renderText({jsondata()$abstract[input$tableDB_rows_selected]})
+```
+
+### Affiliation
+
+```{r}
+renderText({paste0(jsondata()$authors[[input$tableDB_rows_selected]])})
+```
+
+
