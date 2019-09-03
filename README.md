@@ -1,8 +1,8 @@
 ## README
 
-Program to test reading data from API interface. Write a mesh term (ex. Neurons) and/or affiliation name (ex. University of Eastern Finland) to get results of pubmed articles which includes those terms.
+Program to test reading data from API interface. Write mesh-term(s) (ex. *Neurons*) and/or affiliation name (ex. *University of Eastern Finland*) to get results of pubmed articles which includes those terms. API Endpoint URL <http://195.148.31.154:8001>.
 
- * API URL <http://195.148.31.154:8001>
+### Link to [Shiny-App](https://solu.uef.fi/shiny/neurosearch/)
  
  
  <br>
