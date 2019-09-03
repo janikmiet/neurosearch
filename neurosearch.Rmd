@@ -1,5 +1,5 @@
 ---
-title: "PubMed Articles for Neuroscience"
+title: "PubMed search for Neuroscience"
 runtime: shiny
 output: html_document
 ---
@@ -13,23 +13,28 @@ api_request <- URLencode(paste0("http://195.148.31.154:8001/all_mesh_terms"))
 all_terms <- fromJSON(api_request)
 ```
 
-**Search neurosciences articles by mesh-terms, writer name and affiliation.**
+**Search engine for Neuroscience articles and authors**
 
 * This is a test program for reading data from API endpoint <http://195.148.31.154:8001>
-* Write Mesh-term (*ex. Neurons*) and/or affiliation (*ex. University of Eastern Finland* or *Hiltunen*) and click **Search**
+* Write Mesh-term(s) (*ex. Neurons*) and/or affiliation (*ex. University of Eastern Finland* or *Hiltunen*) and click **Search**
 * You will get a list of publication and information of articles
 
 ```{r}
 inputPanel(
   selectInput(inputId = "term_mesh", label = "Mesh term(s):", choices = all_terms, selected = "Neurons", multiple = T),
   textInput(inputId = "term_affiliation", label = "Affiliation:", value = "University of Eastern Finland"),
+  # radioButtons(inputId = "search_term", label = "Search for:", choices = c("Articles", "Authors"), selected = "Articles"),
   actionButton("search", label = "Search")
 )
 
 jsondata <- eventReactive(input$search,{
   term_mesh <- input$term_mesh 
   term_affiliation <- input$term_affiliation
-  
+  # if(input$search_term == "Articles"){
+  #   api_request <- paste0("http://195.148.31.154:8001/", "articles?")
+  # }else if(input$search_term == "Authors"){
+  #   api_request <- paste0("http://195.148.31.154:8001/", "authors?")
+  # }
   # Create API request
   api_request <- paste0("http://195.148.31.154:8001/", "articles?")
   if(is.null(term_mesh) & term_affiliation != ""){
@@ -47,6 +52,38 @@ jsondata <- eventReactive(input$search,{
   else tibble(title="No results found", pub_year=as.double(), pubmed_id=as.double(), abstract="", mesh="", authors="")
 })
 
+authors_data <- eventReactive(input$search,{
+  term_mesh <- input$term_mesh 
+  term_affiliation <- input$term_affiliation
+  # Create API request
+  api_request <- paste0("http://195.148.31.154:8001/", "authors?")
+  if(is.null(term_mesh) & term_affiliation != ""){
+    api_request <- paste0(api_request, "affiliation=", term_affiliation)
+  }else if(term_mesh != "" & term_affiliation == ""){
+    api_request <- paste0(api_request, paste0("mesh=", term_mesh, collapse = "&"))
+  }else if(term_mesh != "" & term_affiliation != ""){
+    api_request <- paste0(api_request, paste0("mesh=", term_mesh, collapse = "&"), "&affiliation=", term_affiliation)
+  }else{
+    api_request <- paste0("http://195.148.31.154:8001/", "authors", "&per_page=100")
+  } 
+  api_request <- URLencode(paste0(api_request, "&per_page=100"))
+  jsondata <- fromJSON(api_request)
+  if(!is.null(nrow(jsondata))) {
+    jsondata$Name <- paste0(jsondata$l_name, ", ", jsondata$f_name)
+    return(jsondata)
+  }else{
+    tibble(Name="", l_name="", f_name="", affiliations="", mesh="")
+  }
+})
+
+```
+
+
+# Search results {.tabset}
+
+## Articles
+
+```{r}
 output$tableDB <- DT::renderDataTable(jsondata()[, c("title", "pub_year")],  
                                       selection = list(mode = "single", selected = 1), 
                                       options = list(pageLength = 5), 
@@ -60,12 +97,10 @@ title <- reactive({
     "No results"
   }
 })
-
-## `r renderText({jsondata()$title[input$tableDB_rows_selected]}`
 ```
 
 
-## `r renderText({title()})`
+### `r renderText({title()})`
 <!-- ## `r renderText({jsondata()$title[input$tableDB_rows_selected]})` -->
 
 ```{r}
@@ -78,14 +113,14 @@ renderText({paste0("Published: ", jsondata()$pub_year[[input$tableDB_rows_select
 
 ```
 
-### Abstract
+#### Abstract
 
 ```{r}
 renderText({jsondata()$abstract[input$tableDB_rows_selected]})
 ```
 
 
-### Keywords
+#### Keywords
 
 ```{r}
 renderText({paste0(jsondata()$mesh[[input$tableDB_rows_selected]], collapse = ", ")})
@@ -94,6 +129,34 @@ renderText({paste0(jsondata()$mesh[[input$tableDB_rows_selected]], collapse = ",
 ```
 
 
+#### Authors and affialiation
+
+```{r}
+renderText({paste0(jsondata()$authors[[input$tableDB_rows_selected]]$l_name, ", ", jsondata()$authors[[input$tableDB_rows_selected]]$f_name, " (",jsondata()$authors[[input$tableDB_rows_selected]]$affiliation,")", collapse = "; ")})
+```
 
 
+## Authors
 
+```{r}
+output$authorstable <- DT::renderDataTable(authors_data()[, c("Name", "l_name", "f_name")],  
+                                      selection = list(mode = "single", selected = 1), 
+                                      options = list(pageLength = 10), 
+                                      rownames = FALSE
+                                      )
+DT::dataTableOutput("authorstable")
+```
+
+### `r renderText({authors_data()$Name[input$authorstable_rows_selected]})`
+
+### Terms
+
+```{r}
+renderText({paste0(authors_data()$mesh[[input$authorstable_rows_selected]], collapse = ", ")})
+```
+
+### Affiliations
+
+```{r}
+renderText({paste0(authors_data()$affiliations[[input$authorstable_rows_selected]], collapse = ", ")})
+```
