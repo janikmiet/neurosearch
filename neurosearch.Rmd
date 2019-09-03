@@ -21,7 +21,7 @@ all_terms <- fromJSON(api_request)
 
 ```{r}
 inputPanel(
-  selectInput(inputId = "term_mesh", label = "Mesh term(s):", choices = all_terms, selected = "Neurons", multiple = T),
+  selectInput(inputId = "term_mesh", label = "MeSH term(s):", choices = all_terms, selected = "Neurons", multiple = T),
   textInput(inputId = "term_affiliation", label = "Affiliation:", value = "University of Eastern Finland"),
   # radioButtons(inputId = "search_term", label = "Search for:", choices = c("Articles", "Authors"), selected = "Articles"),
   actionButton("search", label = "Search")
