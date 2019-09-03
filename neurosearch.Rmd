@@ -1,5 +1,5 @@
 ---
-title: "PubMed search for Neuroscience"
+title: "Neuroscience search"
 runtime: shiny
 output: html_document
 ---
@@ -17,7 +17,7 @@ all_terms <- fromJSON(api_request)
 
 * This is a test program for reading data from API endpoint <http://195.148.31.154:8001>
 * Write Mesh-term(s) (*ex. Neurons*) and/or affiliation (*ex. University of Eastern Finland* or *Hiltunen*) and click **Search**
-* You will get a list of publication and information of articles
+* You will get a list of articles and authors according your search criteria
 
 ```{r}
 inputPanel(
@@ -29,7 +29,7 @@ inputPanel(
   ),
   fluidRow(
     column(12, 
-           textInput(inputId = "term_affiliation", label = "Affiliation:", value = "University of Eastern Finland")
+           textInput(inputId = "term_affiliation", label = "Affiliation/author:", value = "University of Eastern Finland")
     )
   )
 )
