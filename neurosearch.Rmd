@@ -21,10 +21,17 @@ all_terms <- fromJSON(api_request)
 
 ```{r}
 inputPanel(
-  selectInput(inputId = "term_mesh", label = "MeSH term(s):", choices = all_terms, selected = "Neurons", multiple = T),
-  textInput(inputId = "term_affiliation", label = "Affiliation:", value = "University of Eastern Finland"),
-  # radioButtons(inputId = "search_term", label = "Search for:", choices = c("Articles", "Authors"), selected = "Articles"),
-  actionButton("search", label = "Search")
+  fluidRow(
+    column(12,
+           selectInput(inputId = "term_mesh", label = "MeSH term(s):", choices = all_terms, selected = "Neurons", multiple = T),
+           actionButton("search", label = "Search")
+    )
+  ),
+  fluidRow(
+    column(12, 
+           textInput(inputId = "term_affiliation", label = "Affiliation:", value = "University of Eastern Finland")
+    )
+  )
 )
 
 jsondata <- eventReactive(input$search,{
@@ -88,7 +95,7 @@ output$tableDB <- DT::renderDataTable(jsondata()[, c("title", "pub_year")],
                                       selection = list(mode = "single", selected = 1), 
                                       options = list(pageLength = 5), 
                                       rownames = FALSE
-                                      )
+)
 DT::dataTableOutput("tableDB")
 
 title <- reactive({
@@ -140,10 +147,10 @@ renderText({paste0(jsondata()$authors[[input$tableDB_rows_selected]]$l_name, ", 
 
 ```{r}
 output$authorstable <- DT::renderDataTable(authors_data()[, c("Name", "l_name", "f_name")],  
-                                      selection = list(mode = "single", selected = 1), 
-                                      options = list(pageLength = 10), 
-                                      rownames = FALSE
-                                      )
+                                           selection = list(mode = "single", selected = 1), 
+                                           options = list(pageLength = 10), 
+                                           rownames = FALSE
+)
 DT::dataTableOutput("authorstable")
 ```
 
