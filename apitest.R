@@ -22,6 +22,7 @@ api_request <- URLencode(paste0(url, "authors?","mesh=", term_mesh, "&affiliatio
 # Search authors by mesh term
 api_request <- URLencode(paste0(url, "authors?","affiliation=", term_affiliation,"&per_page=100"))
 
+api_request <- URLencode(paste0(url, "authors?","f_name=Hiltunen&per_page=100"))
 
 jsondata <- fromJSON(api_request)
 

@@ -54,7 +54,9 @@ jsondata <- eventReactive(input$search,{
 ```
 
 
-## Search results 
+<!-- # Search results {.tabset} -->
+
+## Articles
 
 ```{r}
 output$tableDB <- DT::renderDataTable(jsondata()[, c("title", "pub_year")],  
@@ -108,3 +110,59 @@ renderText({paste0(jsondata()$mesh[[input$tableDB_rows_selected]], collapse = ",
 renderText({paste0(jsondata()$authors[[input$tableDB_rows_selected]]$l_name, ", ", jsondata()$authors[[input$tableDB_rows_selected]]$f_name, " (",jsondata()$authors[[input$tableDB_rows_selected]]$affiliation,")", collapse = "; ")})
 ```
 
+
+## Authors
+
+```{r}
+
+authors_data <- eventReactive(input$search,{
+  term_mesh <- input$term_mesh
+  term_affiliation <- input$term_affiliation
+  # Create API request
+  api_request <- paste0("http://195.148.31.154:8001/", "authors?")
+  if(is.null(term_mesh) & term_affiliation != ""){
+    api_request <- paste0(api_request, "affiliation=", term_affiliation)
+  }else if(term_mesh != "" & term_affiliation == ""){
+    api_request <- paste0(api_request, paste0("mesh=", term_mesh, collapse = "&"))
+  }else if(term_mesh != "" & term_affiliation != ""){
+    api_request <- paste0(api_request, paste0("mesh=", term_mesh, collapse = "&"), "&affiliation=", term_affiliation)
+  }else{
+    api_request <- paste0("http://195.148.31.154:8001/", "authors", "&per_page=100")
+  }
+  api_request <- URLencode(paste0(api_request, "&per_page=100"))
+  jsondata <- fromJSON(api_request)
+  if(!is.null(nrow(jsondata))) {
+    jsondata$Name <- paste0(jsondata$l_name, ", ", jsondata$f_name)
+    jsondata$affiliation <-  purrr::map(jsondata$affiliations, 1)
+    return(jsondata)
+  }else{
+    tibble(Name="", l_name="", f_name="", affiliations="", mesh="")
+  }
+})
+```
+
+
+```{r}
+output$authorstable <- DT::renderDataTable(authors_data()[, c("Name", "affiliation")],
+                                           selection = list(mode = "single", selected = 1),
+                                           options = list(pageLength = 10),
+                                           rownames = FALSE
+)
+DT::dataTableOutput("authorstable")
+```
+
+### `r renderText({authors_data()$Name[input$authorstable_rows_selected]})`
+
+### All articles
+
+### Linked MeSH terms
+
+```{r}
+renderText({paste0(authors_data()$mesh[[input$authorstable_rows_selected]], collapse = ", ")})
+```
+
+### All affiliations
+
+```{r}
+renderText({paste0(authors_data()$affiliations[[input$authorstable_rows_selected]], collapse = ", ")})
+```
