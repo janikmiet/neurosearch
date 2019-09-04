@@ -13,7 +13,6 @@ api_request <- URLencode(paste0("http://195.148.31.154:8001/all_mesh_terms"))
 all_terms <- fromJSON(api_request)
 ```
 
-* This is a test program for reading data from API endpoint <http://195.148.31.154:8001>
 * Write Mesh-term(s) (*ex. Neurons*) and/or affiliation (*ex. University of Eastern Finland* or *Hiltunen*) and click **Search**
 * You will get a list of articles according your search criteria
 

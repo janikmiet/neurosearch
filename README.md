@@ -1,6 +1,8 @@
 ## README
 
-Program to test reading data from API interface. Write mesh-term(s) (ex. *Neurons*) and/or affiliation name (ex. *University of Eastern Finland*) to get results of pubmed articles which includes those terms.
+Shiny-app to test reading data from API interface. Write MeSH-term(s) (ex. *Neurons*) and/or affiliation name (ex. *University of Eastern Finland*) to get results of PubMed articles which includes selected criteria. 
+
+Launch Shiny-app by using `neurosearch.Rmd`.
 
 ### Link to [Shiny-App](https://solu.uef.fi/shiny/neurosearch/)
  
